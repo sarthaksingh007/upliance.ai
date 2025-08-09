@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction, nanoid } from '@reduxjs/toolkit';
-import { FormSchema, FieldBase, FieldType } from '../../lib/schema';
+import { type PayloadAction, createSlice, nanoid } from '@reduxjs/toolkit';
+import type { FormSchema, FieldBase, FieldType } from '../../lib/schema';
 import { getForms, getFormById, saveForm } from '../../lib/storage';
 
 type FormState = {

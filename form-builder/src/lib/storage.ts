@@ -1,4 +1,4 @@
-import { FormMeta, FormSchema } from './schema';
+import type { FormMeta, FormSchema } from './schema';
 
 const LIST_KEY = 'forms:list';
 

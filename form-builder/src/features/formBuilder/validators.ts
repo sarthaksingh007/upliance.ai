@@ -1,14 +1,18 @@
 import { z } from 'zod';
-import { FieldBase } from '../../lib/schema';
+import type { FieldBase } from '../../lib/schema';
 
 export function zodForField(f: FieldBase) {
     const req = f.required || f.validations?.notEmpty;
+
     switch (f.type) {
         case 'text':
         case 'textarea': {
-            let s = z.string({ required_error: 'Required' });
-            if (!req) s = s.optional().transform(v => v ?? '');
-            if (req) s = s.min(1, 'Required');
+            let s = z.string();
+            
+            // Apply all validations first
+            if (req) {
+                s = s.min(1, 'Required');
+            }
             if (f.validations?.minLength) {
                 s = s.min(f.validations.minLength, `Min ${f.validations.minLength}`);
             }
@@ -19,32 +23,55 @@ export function zodForField(f: FieldBase) {
             if (f.validations?.passwordRule) {
                 s = s.min(8, 'Min 8 characters').regex(/\d/, 'Must contain a number');
             }
+            
+            // Make optional at the end if not required
+            if (!req) {
+                return s.optional().default('');
+            }
             return s;
         }
+
         case 'number': {
-            let s = z.preprocess(v => v === '' || v === undefined ? undefined : Number(v), z.number({ invalid_type_error: 'Invalid number' }));
-            if (!req) s = s.optional();
-            return s;
+            const baseSchema = z.preprocess(
+                v => v === '' || v === undefined ? undefined : Number(v),
+                z.number({ message: 'Invalid number' })
+            );
+            
+            if (!req) {
+                return baseSchema.optional();
+            }
+            return baseSchema;
         }
+
         case 'select':
         case 'radio': {
             let s = z.string();
-            if (!req) s = s.optional().transform(v => v ?? '');
-            if (req) s = s.min(1, 'Required');
-            return s;
+            if (req) {
+                s = s.min(1, 'Required');
+                return s;
+            } else {
+                return s.optional().default('');
+            }
         }
+
         case 'checkbox': {
-            let s = z.boolean();
-            if (req) s = s.refine(v => v === true, 'Must be checked');
-            else s = s.optional().transform(v => !!v);
-            return s;
+            const s = z.boolean();
+            if (req) {
+                return s.refine(v => v === true, 'Must be checked');
+            } else {
+                return s.optional().default(false);
+            }
         }
+
         case 'date': {
-            let s = z.string().refine(v => !v || !isNaN(Date.parse(v)), 'Invalid date');
-            if (!req) s = s.optional().transform(v => v ?? '');
-            if (req) s = s.min(1, 'Required');
-            return s;
+            const s = z.string().refine(v => !v || !isNaN(Date.parse(v)), 'Invalid date');
+            if (req) {
+                return s.min(1, 'Required');
+            } else {
+                return s.optional().default('');
+            }
         }
+
         default:
             return z.any();
     }
@@ -54,7 +81,6 @@ export function zodForForm(fields: FieldBase[]) {
     const shape: Record<string, z.ZodTypeAny> = {};
     for (const f of fields) {
         if (f.derived?.enabled) {
-            // derived fields are computed, keep them as optional strings
             shape[f.id] = z.any().optional();
         } else {
             shape[f.id] = zodForField(f);

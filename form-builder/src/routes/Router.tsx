@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { CreatePage } from '../pages/CreatePage';
 import { PreviewPage } from '../pages/PreviewPage';
 import { MyFormsPage } from '../pages/MyFormsPage';

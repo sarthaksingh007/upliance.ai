@@ -3,17 +3,22 @@ import {
     TextField, FormControlLabel, Checkbox, MenuItem, RadioGroup, Radio,
     Button, Paper, Stack, Typography
 } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { FieldBase } from '../../../lib/schema';
+import type { FieldBase } from '../../../lib/schema';
 import { zodForForm } from '../validators';
 import { buildCtx, evalDerived } from '../derived';
 
 export const FormRenderer: React.FC<{ fields: FieldBase[] }> = ({ fields }) => {
     const defaultValues = Object.fromEntries(fields.map(f => [f.id, f.defaultValue ?? (f.type === 'checkbox' ? false : '')]));
-    const schema: z.ZodTypeAny = zodForForm(fields);
-    const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({ defaultValues, resolver: zodResolver(schema), mode: 'onBlur' });
+    
+    const schema = zodForForm(fields);
+    
+    const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({ 
+        defaultValues, 
+        resolver: zodResolver(schema), 
+        mode: 'onBlur' 
+    });
 
     const values = watch();
 
@@ -32,13 +37,13 @@ export const FormRenderer: React.FC<{ fields: FieldBase[] }> = ({ fields }) => {
         }
     }, [values, fields, setValue]);
 
-    const onSubmit = (data: any) => {
+    const onSubmit = (data: FieldValues) => {
         console.log('Submit', data);
         alert('Form is valid. Check console for values.');
     };
 
     const renderField = (f: FieldBase) => {
-        const err = (errors as any)[f.id]?.message as string | undefined;
+        const err = (errors)[f.id]?.message as string | undefined;
         const common = { fullWidth: true, helperText: err, error: !!err };
         const disabled = !!f.derived?.enabled;
         switch (f.type) {

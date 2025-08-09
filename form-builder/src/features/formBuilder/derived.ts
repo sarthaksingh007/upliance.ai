@@ -1,4 +1,4 @@
-import { FieldBase } from '../../lib/schema';
+import type { FieldBase } from '../../lib/schema';
 
 type Ctx = Record<string, any>;
 
