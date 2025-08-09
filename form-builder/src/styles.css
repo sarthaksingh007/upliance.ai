@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+--brand: 18 186 197; 
+--slate: 15 23 42;
+}
+html, body, #root {
+height: 100%;
+}
+body {
+@apply bg-slate-50 text-slate-800;
+}
